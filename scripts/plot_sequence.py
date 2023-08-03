@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3.8
 
 # XXX XXX Draft! XXX XXX
 
@@ -15,7 +15,7 @@ sns.set()
 
 
 class SequencePlotter(object):
-    def __init__(self, dirname: str, display_options: tuple):
+    def __init__(self, dirname, display_options):
         """
         Scan sequence dir and plot by group according to options
         and prefixes / extensions filenames
@@ -24,7 +24,7 @@ class SequencePlotter(object):
 
         for group in display_options.keys():
 
-            print(f"-- Processing group: {group} --")  # noqa
+            print(f"-- Processing group: {group} --")
 
             for entry in list_dir:
 
