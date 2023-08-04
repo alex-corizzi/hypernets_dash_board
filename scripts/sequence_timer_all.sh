@@ -8,6 +8,7 @@
 # Source Config 
 # ----------------------------------------------------------------------------
 config_file="./update_all.cfg"
+path_to_dirs=$1
 
 if test -f $config_file ; then
       . $config_file
