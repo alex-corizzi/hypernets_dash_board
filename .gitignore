@@ -4,3 +4,4 @@ __pycache__/
 archive/
 csv_data/
 html/
+*log
