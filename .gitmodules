@@ -1,0 +1,3 @@
+[submodule "hypernets_tools"]
+	path = hypernets_tools
+	url = https://github.com/hypernets/hypernets_tools
