@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Hypernets DashBoard -Draft!-</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        
+        <link rel="stylesheet" href="base/general.css">
+        <link rel="stylesheet" href="base/bootstrap/css/bootstrap.min.css">
+
+        <script src="base/bootstrap/js/jquery.slim.min.js"></script>
+        <script src="base/bootstrap/js/popper.min.js"></script>
+        <script src="base/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+        <!-- Inclusion : leaflet --> 
+        <link rel="stylesheet" href="base/css/leaflet.css"/>
+        <script src="base/js/leaflet.js"></script>
+
+        <!-- Inclusion : jquery --> 
+        <script src="base/js/jquery-3.6.1.min.js"></script>
+
+        <!--
+        <script src="https://code.jquery.com/jquery-3.6.1.min.js"
+                integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ="
+                crossorigin="anonymous"></script>
+        -->
+
+
+        <!-- Inclusion : footer --> 
+        <script> 
+            $(function(){
+                $("#footer").load("base/footer.html"); 
+            });
+        </script> 
+
+        <!-- Inclusion : dataframe -->
+        <script> 
+            $(function(){
+                $("#map").load("custom/map.html"); 
+            });
+        </script> 
+
+        <script> 
+            $(function(){
+                $("#subTitle").load("custom/sub_title.html");
+            });
+        </script> 
+        
+    </head> 
+
+    <body>
+
+        <h1 class="logo-title">
+            <img class="img-fluid" src="base/images/hypernets-logo.png" alt="HYPERNETS
+                        logo" width=10%> Hypernets</h1> 
+
+        <div id="subTitle"></div>
+
+    
+        <!-- Blue with white text -->
+        <nav class="navbar navbar-expand-sm  navbar-dark navbar-custom">
+            <ul class="navbar-nav navbar-custom">
+                <li class="nav-item">
+                    <a class="nav-link" href="index.html">Main</a>
+                </li>
+
+                <li class="nav-item active">
+                    <a class="nav-link" href="map.html">Map</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="browse.html">Browse...</a>
+                </li>
+            </ul>
+        </nav>
+
+        <div id="map"></div>
+
+        <br/>
+
+        <div id="footer"></div>
+
+    </body>
+</html>

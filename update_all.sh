@@ -53,7 +53,7 @@ fi
 # ------------------------------------------------------------------------------
 # Make Plots
 # ------------------------------------------------------------------------------
-for f in $(find $data_folder -name "*csv"); do 
+for f in $(find $csv_dir -name "*csv"); do 
 
     printf '%0.1s' "-"{1..80}
     echo
@@ -82,7 +82,7 @@ for f in $(find $data_folder -name "*csv"); do
         ./scripts/plot_segment.py -f $f -t $site_name ${!segment_args}
 
         if [ $? -eq 0 ]; then
-            mv ${site_name}_plot.png ${outp_folder%/}/${site_name}_plot_last.png
+            mv ${site_name}_plot.png ${plot_out%/}/${site_name}_plot_last.png
         else
             echo "Error!"
         fi
@@ -95,7 +95,7 @@ for f in $(find $data_folder -name "*csv"); do
     else
         ./scripts/plot_duration.py -f $f
         if [ $? -eq 0 ]; then
-            mv ${site_name}_duration.png ${outp_folder%/}/${site_name}_duration.png
+            mv ${site_name}_duration.png ${plot_out%/}/${site_name}_duration.png
         else
             echo "Error!"
         fi

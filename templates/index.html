@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+
+        <title>Hypernets DashBoard</title>
+
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+        <link rel="stylesheet" href="base/general.css">
+
+        <link rel="stylesheet" href="base/bootstrap/css/bootstrap.min.css">
+
+        <script src="base/bootstrap/js/jquery.slim.min.js"></script>
+        <script src="base/bootstrap/js/popper.min.js"></script>
+        <script src="base/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+        <!-- Inclusion : jquery --> 
+        <script src="base/js/jquery-3.6.1.min.js"></script>
+
+        <!-- Inclusion : sites list --> 
+        <script> 
+            $(function(){
+                $("#sites_list").load("sites_list.html"); 
+            });
+        </script> 
+
+        <!-- Inclusion : footer --> 
+        <script> 
+            $(function(){
+                $("#footer").load("base/footer.html"); 
+            });
+        </script> 
+    </head>
+
+    <body>
+
+        <h1 class="logo-title">
+            <img class="img-fluid" src="base/images/hypernets-logo.png" 
+                                   alt="HYPERNETS logo" style="width:10%;">
+            Hypernets 
+        </h1>
+
+        <h2 class="logo-title" style="font-size:4vw;" > 
+            <img class="img-fluid" src="base/images/qrcode_obs-vlfr.fr.png" 
+                                   alt="qrcode" style="width:10%"> DashBoard</h2> 
+
+        <div class="text-center">
+            <div id="sites_list"></div>
+        </div>
+
+        <div id="footer"></div>
+
+    </body>
+
+</html>
