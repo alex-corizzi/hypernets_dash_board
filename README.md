@@ -1,6 +1,18 @@
 
 
-### Segment 
+![Hypernets Logo](hypernets_tools/hypernets/resources/img/logo.png)
+
+### Setup Instructions
+```
+git clone https://github.com/alex-corizzi/hypernets_dash_board/
+git submodule init
+git submodule update
+ls hypernets_tools/hypernets/hypstar/libhypstar/
+cd hypernets_tools/
+git submodule init
+git submodule update
+cd hypernets/hypstar/libhypstar/
+```
 
 ```
 usage: plot_segment.py [-h] -f FILENAME [-a AFTER] [-b BEFORE] [-t TITLE]
@@ -47,5 +59,3 @@ optional arguments:
   -o OUTPUT, --output OUTPUT
                         Specify output name.
 ```
-
-### 
