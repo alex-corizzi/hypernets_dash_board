@@ -14,6 +14,14 @@ git submodule update
 cd hypernets/hypstar/libhypstar/
 ```
 
+### HTML Dash Board generation
+```
+./scripts/generate_site_or_new_location.sh
+```
+
+
+
+### Segment
 ```
 usage: plot_segment.py [-h] -f FILENAME [-a AFTER] [-b BEFORE] [-t TITLE]
                        [-o OUTPUT]
