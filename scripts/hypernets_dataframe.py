@@ -43,6 +43,9 @@ class HypernetsDataFrame(DataFrame):
 
         super().__init__(read_csv(filename, sep=';'))
 
+        self['sequence_name'] = \
+            self['sequence_name'].apply(lambda x: x.strip())
+
         self['date'] = to_datetime(self['start'], unit='s').dt.date
         self['start'] = to_datetime(self['start'], unit='s').dt.time
         self['stop'] = to_datetime(self['stop'], unit='s').dt.time
@@ -73,7 +76,17 @@ class HypernetsDataFrame(DataFrame):
         self['light'] = \
             self['light'].apply(lambda x: float(x.replace('lx', '')))
 
+        self['temperature'] = \
+            self['temperature'].apply(lambda x: float(x.replace("'C", "")))
+
+        self['humidity'] = \
+            self['humidity'].apply(lambda x: float(x.replace("% RH", "")))
+
+        self['pressure'] = \
+            self['pressure'].apply(lambda x: float(x.replace("mbar", "")))
+
         self['tooDarkExcept'] = self['tooDarkExcept'].apply(lambda x: int(x))
+
         self['serialExcept'] = self['serialExcept'].apply(lambda x: int(x))
 
         self['duration'] = self.apply(
