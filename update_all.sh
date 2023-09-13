@@ -2,6 +2,10 @@
 # set -o nounset
 # set -euo pipefail
 
+
+
+source ./scripts/utils.sh
+
 # ----------------------------------------------------------------------------
 # Source Config 
 # ----------------------------------------------------------------------------
@@ -13,6 +17,7 @@ date
 printf '%0.1s' "-"{1..80} && echo
 # ----------------------------------------------------------------------------
 
+# XXX
 if test -f $config_file ; then
       . $config_file
     if [ $? -eq 0 ]; then
@@ -22,20 +27,6 @@ if test -f $config_file ; then
         exit 1
     fi
 fi
-
-read_config (){
-    process=${site_name}_process
-
-    segment=${site_name}_segment
-    segment_args=${site_name}_segment_args
-
-    duration=${site_name}_duration
-    duration_args=${site_name}_duration_args
-
-    echo "Site Name: $site_name - process=${!process}"
-    echo "Segment : (${!segment}) - ${!segment_args}"
-    echo "Duration: (${!duration}) - ${!duration_args}"
-}
 
 
 # ----------------------------------------------------------------------------
@@ -65,13 +56,6 @@ for f in $(find $csv_dir -name "*csv"); do
     read_config $site_name
 
     echo $duration
-
-    # --------------------------------------------------------------------------
-    # Process or Not 
-    if [[ -n ${!process} ]] && [ "${!process}" = False ] ; then
-        echo $process is ${!process} : skip!
-        continue
-    fi
 
     # --------------------------------------------------------------------------
     #  Segment Plot
