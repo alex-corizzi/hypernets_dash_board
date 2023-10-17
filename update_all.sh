@@ -3,7 +3,6 @@
 # set -euo pipefail
 
 
-
 source ./scripts/utils.sh
 
 # ----------------------------------------------------------------------------
@@ -27,7 +26,6 @@ if test -f $config_file ; then
         exit 1
     fi
 fi
-
 
 # ----------------------------------------------------------------------------
 # Execute pre-processing script if it is defined
