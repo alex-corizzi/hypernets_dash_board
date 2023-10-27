@@ -26,8 +26,8 @@ fi
 
 name_site=$(echo $path_to_dirs | rev | cut -d'/' -f2 | rev)
 
-path_to_logs="${path_to_dirs}LOGS/"
-path_to_data="${path_to_dirs}DATA/"
+path_to_logs="${path_to_dirs%/}/LOGS/"
+path_to_data="${path_to_dirs%/}/DATA/"
 
 if [ $write_stdout -eq 0 ]; then
     output="${csv_dir}${name_site}_data.csv"

@@ -1,4 +1,6 @@
 #!/bin/bash
+set -o nounset
+set -euo pipefail
 
 # ----------------------------------------------------------------------------
 # Source Config 
@@ -54,6 +56,7 @@ echo "Enter a location (decimal)"
 read -p "Latitude:" lat
 read -p "Longitude:" lon
 
+
 cat > map.html << EOF
 <div id="map" style="width: 80%; height: 300px;  border: 1px solid black; 
                      border-radius: 8px;  position: relative; right:-10%; left:10%;"></div>
@@ -62,9 +65,7 @@ cat > map.html << EOF
 
    const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
        maxZoom: 19,
-       attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-   }).addTo(map);
-
+       attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>' }).addTo(map); 
     // const marker = L.marker([$lat, $lon]).addTo(map);
 
    const circle = L.circle([$lat, $lon], {
@@ -77,9 +78,6 @@ cat > map.html << EOF
 </script>
 EOF
 
-echo $PWD
-exit 0
-
 
 cat > sub_title.html << EOF
 <a href=..>
@@ -90,8 +88,7 @@ cat > sub_title.html << EOF
 EOF
 
 
-
-cat > caoursel.html << EOF
+cat > carousel.html << EOF
 <div class="container mt-3">
     <div id="myCarousel" class="carousel slide" data-ride="carousel">
 
@@ -140,8 +137,9 @@ EOF
 cd -
 mkdir raw 
 cd raw
-touch duration_last.png
-touch plot_last.png
+ln -s ../../../monitor/${site_id^^}_duration.png duration_last.png
+ln -s ../../../monitor/${site_id^^}_plot_last.png plot_last.png
+
 cd ../../
 
 cat >> sites_list.html << EOF
