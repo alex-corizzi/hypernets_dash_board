@@ -4,6 +4,7 @@ __pycache__/
 archive/
 csv_data/
 html/
+html
 *log
 ./get_data.sh
 ./update_all.cfg
