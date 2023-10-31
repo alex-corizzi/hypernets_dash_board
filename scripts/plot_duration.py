@@ -4,6 +4,9 @@ from os.path import basename
 from argparse import ArgumentParser
 
 from datetime import datetime
+from pandas import DataFrame
+
+
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import matplotlib.patches as mpatches
@@ -13,13 +16,17 @@ import seaborn as sns
 from scripts.hypernets_dataframe import HypernetsDataFrame
 from scripts.hypernets_dataframe import basic_parser_configuration
 
-from color_pickup import dict_legend
+from color_pickup import dict_legend, color_modes
 
 sns.set()
 sns.set_style('darkgrid')
 
 parser = ArgumentParser()
 parser = basic_parser_configuration(parser)
+
+parser.add_argument("-c", "--color", type=str, help="Choose the color picker.",
+                    choices=color_modes.keys(), default="water")
+
 args = parser.parse_args()
 
 df = HypernetsDataFrame(args.filename, after=args.after, before=args.before)
@@ -28,21 +35,29 @@ df["datetime"] = df.apply(lambda x: datetime.combine(x.date, x.start), axis=1)
 df.sort_values('datetime', ascending=True, inplace=True)
 
 print(df)
-
 plt.clf()
 
 
 handles = [mpatches.Patch(color=line, label=dict_legend[line])
            for line in dict_legend]
 
-nb_spe, nb_img = 58, 3
-nb_spe, nb_img = 10, 6
 
-gre = df[(df["nb_spe"] == nb_spe) & (df["nb_img"] == nb_img)]
-blu = df[(df["nb_spe"] == nb_spe) & (df["nb_img"] < nb_img)]
-yel = df[(df["nb_spe"] == nb_spe) & (df["nb_img"] == 0)]
-red = df[(df["nb_spe"] < nb_spe)]
+mask_gre = DataFrame(False, index=df.index, columns=df.columns)
+mask_blu = DataFrame(False, index=df.index, columns=df.columns)
+mask_yel = DataFrame(False, index=df.index, columns=df.columns)
+mask_red = DataFrame(False, index=df.index, columns=df.columns)
 
+for nb_spe, nb_img in color_modes[args.color]:
+    mask_gre = mask_gre | ((df["nb_spe"] == nb_spe) & (df["nb_img"] == nb_img))
+    mask_blu = mask_blu | ((df["nb_spe"] == nb_spe) & (df["nb_img"] < nb_img))
+    mask_yel = mask_yel | ((df["nb_spe"] == nb_spe) & (df["nb_img"] == 0))
+    mask_red = mask_red | ((df["nb_spe"] < nb_spe))
+
+
+gre = df[mask_gre]
+blu = df[mask_blu]
+yel = df[mask_yel]
+red = df[mask_red]
 
 # TODO: color the rest in grey
 # blk = df[(
