@@ -40,8 +40,9 @@ nb_spe, nb_img = 10, 6
 
 gre = df[(df["nb_spe"] == nb_spe) & (df["nb_img"] == nb_img)]
 blu = df[(df["nb_spe"] == nb_spe) & (df["nb_img"] < nb_img)]
-yel = df[(df["nb_spe"] == nb_spe) & (df["nb_img"] == nb_img)]
+yel = df[(df["nb_spe"] == nb_spe) & (df["nb_img"] == 0)]
 red = df[(df["nb_spe"] < nb_spe)]
+
 
 # TODO: color the rest in grey
 # blk = df[(
@@ -59,9 +60,9 @@ df_light = df.get_dataframe_light()
 fig, (ax1, ax2) = plt.subplots(2, 1, sharex='col')
 
 ax1.plot(red["datetime"], red["duration"], ".r", alpha=.85, markeredgewidth=0)
-ax1.plot(yel["datetime"], yel["duration"], ".y", alpha=.55, markeredgewidth=0)
+ax1.plot(yel["datetime"], yel["duration"], ".y", alpha=.85, markeredgewidth=0)
 ax1.plot(blu["datetime"], blu["duration"], ".b", alpha=.25, markeredgewidth=0)
-ax1.plot(gre["datetime"], gre["duration"], ".g", alpha=.2, markeredgewidth=0)
+ax1.plot(gre["datetime"], gre["duration"], ".g", alpha=.20, markeredgewidth=0)
 
 ax1.plot(mean_duration, "purple")
 # ax1.plot(mean_offset, "brown")

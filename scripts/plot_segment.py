@@ -49,9 +49,8 @@ sns.set_style('darkgrid')
 
 
 if args.after is None and args.before is None:
-    one_month_ago = to_datetime(datetime.now() - relativedelta(months=1))
     print("Default data selection (one month ago)")
-    args.after = one_month_ago
+    args.after = to_datetime(datetime.now() - relativedelta(months=1))
 
 
 df = HypernetsDataFrame(args.filename, after=args.after, before=args.before)
