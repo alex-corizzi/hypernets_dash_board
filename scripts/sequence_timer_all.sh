@@ -24,7 +24,7 @@ fi
 # TODO : Let-s define some default values here
 # ---------------------------------------------------------------------
 
-name_site=$(echo $path_to_dirs | rev | cut -d'/' -f2 | rev)
+name_site=$(echo ${path_to_dirs%/}/ | rev | cut -d'/' -f2 | rev)
 
 path_to_logs="${path_to_dirs%/}/LOGS/"
 path_to_data="${path_to_dirs%/}/DATA/"
