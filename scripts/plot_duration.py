@@ -4,8 +4,8 @@ from os.path import basename
 from argparse import ArgumentParser
 
 from datetime import datetime
-from pandas import DataFrame
 
+from pandas.core.series import Series
 
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
@@ -37,35 +37,24 @@ df.sort_values('datetime', ascending=True, inplace=True)
 print(df)
 plt.clf()
 
-
 handles = [mpatches.Patch(color=line, label=dict_legend[line])
            for line in dict_legend]
 
-
-mask_gre = DataFrame(False, index=df.index, columns=df.columns)
-mask_blu = DataFrame(False, index=df.index, columns=df.columns)
-mask_yel = DataFrame(False, index=df.index, columns=df.columns)
-mask_red = DataFrame(False, index=df.index, columns=df.columns)
+gre = Series(False, index=df.index, dtype=bool)  # Color Masks init
+yel = Series(False, index=df.index, dtype=bool)
+blu = Series(False, index=df.index, dtype=bool)
+red = Series(False, index=df.index, dtype=bool)
 
 for nb_spe, nb_img in color_modes[args.color]:
-    mask_gre = mask_gre | ((df["nb_spe"] == nb_spe) & (df["nb_img"] == nb_img))
-    mask_blu = mask_blu | ((df["nb_spe"] == nb_spe) & (df["nb_img"] < nb_img))
-    mask_yel = mask_yel | ((df["nb_spe"] == nb_spe) & (df["nb_img"] == 0))
-    mask_red = mask_red | ((df["nb_spe"] < nb_spe))
+    gre = ((df["nb_spe"] == nb_spe) & (df["nb_img"] == nb_img)) | gre
 
+for nb_spe, nb_img in color_modes[args.color]:
+    yel = ~ gre & (((df["nb_spe"] == nb_spe) & (df["nb_img"] == 0)) | yel)
 
-gre = df[mask_gre]
-blu = df[mask_blu]
-yel = df[mask_yel]
-red = df[mask_red]
+for nb_spe, nb_img in color_modes[args.color]:
+    blu = ~ gre & ~ yel & ((df["nb_spe"] == nb_spe) | blu)
 
-# TODO: color the rest in grey
-# blk = df[(
-# (df["nb_spe"] == nb_spe) & (df["nb_img"] == nb_img) & \
-# (df["nb_spe"] == nb_spe) & (df["nb_img"] < nb_img) & \
-# (df["nb_spe"] == nb_spe) & (df["nb_img"] == nb_img) & \
-# (df["nb_spe"] < nb_spe))]
-# print(blk)
+red = ~ gre & ~ yel & ~ blu
 
 mean_duration = df[["duration", "date"]].groupby("date").agg(["mean"])
 # mean_offset = df[["yoctoOffset", "date"]].groupby("date").agg(["mean"])
@@ -74,10 +63,10 @@ df_light = df.get_dataframe_light()
 
 fig, (ax1, ax2) = plt.subplots(2, 1, sharex='col')
 
-ax1.plot(red["datetime"], red["duration"], ".r", alpha=.85, markeredgewidth=0)
-ax1.plot(yel["datetime"], yel["duration"], ".y", alpha=.85, markeredgewidth=0)
-ax1.plot(blu["datetime"], blu["duration"], ".b", alpha=.25, markeredgewidth=0)
-ax1.plot(gre["datetime"], gre["duration"], ".g", alpha=.20, markeredgewidth=0)
+ax1.plot(df[gre]["datetime"], df[gre]["duration"], ".g", alpha=.80, markeredgewidth=0)
+ax1.plot(df[yel]["datetime"], df[yel]["duration"], ".y", alpha=.85, markeredgewidth=0)
+ax1.plot(df[blu]["datetime"], df[blu]["duration"], ".b", alpha=.25, markeredgewidth=0)
+ax1.plot(df[red]["datetime"], df[red]["duration"], ".r", alpha=.85, markeredgewidth=0)
 
 ax1.plot(mean_duration, "purple")
 # ax1.plot(mean_offset, "brown")
@@ -101,7 +90,6 @@ ax2.yaxis.tick_right()
 
 ax2.xaxis.set_major_formatter(mdates.DateFormatter("%b.%y"))
 ax2.tick_params(labelsize=6)
-# ax2.invert_yaxis()
 ax2.xaxis.tick_top()
 
 if args.output is None:
