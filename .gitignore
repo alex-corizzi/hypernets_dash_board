@@ -3,6 +3,7 @@ __pycache__/
 *.pyc
 archive/
 csv_data/
+nc_data/
 html/
 html
 *log
