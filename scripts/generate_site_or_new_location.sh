@@ -53,8 +53,8 @@ cd custom
 touch ${site_id}_nice_picture.jpg
 
 echo "Enter a location (decimal)"
-read -p "Latitude:" lat
-read -p "Longitude:" lon
+read -p "Latitude (North) :" lat
+read -p "Longitude (East) :" lon
 
 
 cat > map.html << EOF
