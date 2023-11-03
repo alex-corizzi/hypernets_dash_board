@@ -2,11 +2,33 @@
 # set -o nounset
 # set -euo pipefail
 
-# TODO  Refactor!
+# -----------------------------------------------------------
+# Let's define some default values here
+# -----------------------------------------------------------
+debug=1          # only 1 step
+verbose=1        # output everything on stdout (no output file)
+write_stdout=0   # 0: write file (default); 1: write to stdout;
+display_integration_time=0
+# -----------------------------------------------------------
+extract_meteo=1
+extract_serial_bug=1
+extract_too_dark=1
+extract_rain=1
+extract_yocto_rtc=0
+# -----------------------------------------------------------
+year_to_process=2023
+after=0
+before=0
+# after=$(date -d "2023-06-22 01:00" +"%s")
+# before=$(date -d "2023-06-24 00:00" +"%s")
+# -----------------------------------------------------------
 
-# ----------------------------------------------------------------------------
+
+# -----------------------------------------------------------
+# TODO  Refactor!
+# -----------------------------------------------------------
 # Source Config 
-# ----------------------------------------------------------------------------
+# -----------------------------------------------------------
 config_file="./update_all.cfg"
 path_to_dirs=$1
 
@@ -20,9 +42,6 @@ if test -f $config_file ; then
     fi
 fi
 
-# ---------------------------------------------------------------------
-# TODO : Let-s define some default values here
-# ---------------------------------------------------------------------
 
 name_site=$(echo ${path_to_dirs%/}/ | rev | cut -d'/' -f2 | rev)
 
@@ -46,7 +65,7 @@ if [ "$verbose" -eq 1 ] ; then
     echo "# -------------------------------------------------------"
 fi
 
-    # -------------------------------------------------------------------------
+    # --------------------------------------------------------------
     # Write header + creation of the output file
     echo -n "sequence_name;start;stop;nb_spe;nb_img" > $output
 
@@ -71,7 +90,7 @@ fi
     fi
 
     echo >> $output
-    # -------------------------------------------------------------------------
+    # -------------------------------------------------------------
 
     for f in $(find "$path_to_logs" -name ${year_to_process}*sequence*log); do
 

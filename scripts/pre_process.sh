@@ -21,7 +21,7 @@ do
         continue
     fi
 
-    ./scripts/sequence_timer_all.sh $path_to_dirs
+    ./scripts/sequence_timer.sh $path_to_dirs
 done
 
 # ----------------------------------------------------------------------------
