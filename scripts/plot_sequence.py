@@ -1,107 +1,52 @@
 #!/usr/bin/python3.8
 
-# XXX XXX Draft! XXX XXX
+from netCDF4 import Dataset
+from glob import glob
+from datetime import datetime
+from os.path import basename, join
 
-from os import scandir
-from os.path import join
-from argparse import ArgumentParser
-
-from hypernets.reader.spectra import Spectra
-
-import matplotlib.pyplot as plt # noqa
+import matplotlib.pyplot as plt
 import seaborn as sns
-
 sns.set()
 
 
-class SequencePlotter(object):
-    def __init__(self, dirname, display_options):
-        """
-        Scan sequence dir and plot by group according to options
-        and prefixes / extensions filenames
-        """
-        list_dir = list(scandir(join(dirname, 'RADIOMETER')))
-
-        for group in display_options.keys():
-
-            print(f"-- Processing group: {group} --")
-
-            for entry in list_dir:
-
-                if entry.name[3:6] not in display_options[group][0]:
-                    continue
-
-                for spectrum in Spectra(entry.path):
-                    print(f"{spectrum.timestamp}")
-                    display_options[group][1].plot(spectrum.counts)
-
-                    # XXX QUICKFIX
-                    self.current_spectrum = spectrum
-
-                display_options[group][1].title.set_text(group)
-                list_dir.remove(entry)
-
-    @staticmethod
-    def load_validation_ref():
-        from csv import reader
-        return [int(x[0]) for x in
-                list(reader(open("SEQ20230525T230119_001_1.csv", "r")))]
+input_dir = "./nc_data/20/"
+output_dir = "./html/monitor/BEFR_last_sequences/"
+selection = slice(106, 1229)  # Plot Only 400 ~ 950 nm
 
 
-if __name__ == '__main__':
-
-    parser = ArgumentParser()
-
-    parser.add_argument("-d", "--directory", type=str, required=True,
-                        help="Select a Sequence Directory")
-
-    parser.add_argument("-t", "--display-type", type=str, default="water",
-                        choices=['water', 'validation'],
-                        help="Chose the type of display")
-
-    args = parser.parse_args()
-
-    if args.display_type == "water":
-        fig, ((ax1, ax2), (ax3, ax4)),  = \
-            plt.subplots(2, 2, sharey='row', sharex='col')
-
-        display_options = {"Ed": (["001", "013"], ax1),
-                           "Ld": (["004", "010"], ax2),
-                           "Lu": (["007"]       , ax3)} # noqa
-
-        ax1.set_ylabel("DN")
-        ax3.set_ylabel("DN")
-
-    elif args.display_type == "validation":
-        fig, ((ax1, ax2), (ax3, ax4)),  = \
-            plt.subplots(2, 2, sharex='col')
-
-        display_options = {"L (instrument)": (["001"], ax1),
-                           "E (insturment)": (["002"], ax2)}
-
-        # XXX QUICKFIX
-        ref = SequencePlotter.load_validation_ref()
-        ax3.plot(ref)
-
-        ax3.title.set_text("Reference")
-
-        ax1.set_ylabel("DN")
-        ax3.set_ylabel("DN")
+def plot_product(data, desc, ax):
+    ax.plot(data["wavelength"][selection],
+            data[desc][selection], linewidth=0.5)
+    ax.title.set_text(desc)
+    ax.set_ylabel(data[desc].units)
 
 
-SP = SequencePlotter(args.directory, display_options)
+for filename in sorted(glob(join(input_dir, "**/*L1C*"), recursive=True)):
 
-if args.display_type == "validation":
-    # FIXME Percentage
-    ax2.plot([(a - b) / abs(a)
-             for a, b in zip(SP.current_spectrum.counts, ref)])
+    print(filename)
 
-    ax2.title.set_text("Error (%)")
+    data = Dataset(filename, 'r')
+    acq_dt = datetime.fromtimestamp(int(data["acquisition_time"][0]))
 
-    # FIXME Difference
-    ax4.plot([a - b for a, b in zip(SP.current_spectrum.counts, ref)])
-    ax4.title.set_text("Difference")
+    fig, axs = plt.subplots(2, 2, sharex='col', constrained_layout=True)
 
-# fig.tight_layout(pad=3)
-fig.suptitle(f"{args.directory}: {args.display_type}")
-fig.show()
+    # Plot the 3 'all' measures from L1C product
+    for ax, desc in zip(axs.reshape(-1), ["irradiance", "upwelling_radiance",
+                                          "downwelling_radiance"]):
+        plot_product(data, desc, ax)
+
+    # Plot the reflectance (averaged) from L2A product
+    data = Dataset(filename.replace("L1C_ALL", "L2A_REF"))
+    plot_product(data, "reflectance", axs[1, 1])
+
+    # Global settings of the plot
+    axs[1, 0].set_xlabel("Wavelength (nm)")
+    axs[1, 1].set_xlabel("Wavelength (nm)")
+    fig.set_size_inches(18.5, 10.5)
+    plt.suptitle(f"{acq_dt.strftime('%d-%b %Y - %H:%M:%S')}", fontsize=18)
+
+    # Save plot
+    output_name = basename(filename)[:17] + basename(filename)[25:-3] + ".png"
+    plt.savefig(join(output_dir, output_name))
+    plt.close(fig)
