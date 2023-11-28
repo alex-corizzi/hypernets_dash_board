@@ -2,14 +2,15 @@
 
 from netCDF4 import Dataset
 
-from os.path import basename, join, isdir, exists
+from os.path import basename, join, isdir, exists, dirname
+from os import listdir
+
 
 from glob import glob
 from datetime import datetime
-
 from argparse import ArgumentParser
+from re import compile as compile_regex
 
-from numpy import where
 import matplotlib.pyplot as plt
 import seaborn as sns
 sns.set()
@@ -20,9 +21,9 @@ class ProductPlotter(object):
     def __init__(self, path_to_file, output_dir, wl_start=0, wl_stop=None):
 
         self.output_dir = output_dir
-        self.filename = path_to_file
+        self.path_to_file= path_to_file
 
-        # Note: NetCDF is not designed to do inheritance
+        # netCDF4 not designed to do inheritance; composition instead
         self.nc = Dataset(path_to_file, 'r')
 
         cond_start = self.nc["wavelength"][:] >= wl_start
@@ -39,24 +40,32 @@ class ProductPlotter(object):
         fig, axs = plt.subplots(2, 2, sharex='col', constrained_layout=True)
 
         # Plot the 3 'all' measures from L1C product
-        for ax, desc in zip(axs.reshape(-1),
-                            ["irradiance", "upwelling_radiance", "downwelling_radiance"]):  # noqa
+        for n, (ax, desc) in enumerate(zip(axs.reshape(-1),
+                                       ["irradiance", "upwelling_radiance",
+                                        "downwelling_radiance"])):
+
+            print(f"== {n} [{desc} --> {ax}]")
             self.plot_product(self.nc, self._mask, desc, ax)
 
         # Plot the reflectance (averaged) from L2A product
-        data = Dataset(self.filename.replace("L1C_ALL", "L2A_REF"))
+        data = Dataset(self.path_to_file.replace("L1C_ALL", "L2A_REF"))
         self.plot_product(data, self._mask, "reflectance", axs[1, 1])
+
+        # Add images of the radiometer for each geometry
+        self.add_images(fig)
 
         # Global settings of the plot
         axs[1, 0].set_xlabel("Wavelength (nm)")
         axs[1, 1].set_xlabel("Wavelength (nm)")
         fig.set_size_inches(18.5, 10.5)
 
+        # Title generated from the timestamp of the measure
         acq_dt = datetime.fromtimestamp(int(self.nc["acquisition_time"][0]))
         plt.suptitle(f"{acq_dt.strftime('%d-%b %Y - %H:%M:%S')}", fontsize=18)
 
         # Save plot
-        output_name = basename(self.filename)[:17] + basename(self.filename)[25:-3] + ".png"  # noqa
+        output_name = basename(self.path_to_file)[:17] + basename(self.path_to_file)[25:-3] + ".png"  # noqa
+
         # makedirs(self.output_dir, exist_ok=True)
         plt.savefig(join(self.output_dir, output_name))
         plt.close(fig)
@@ -67,6 +76,30 @@ class ProductPlotter(object):
                 data[desc][mask], linewidth=0.5)
         ax.title.set_text(desc)
         ax.set_ylabel(data[desc].units)
+
+    def add_images(self, fig):
+
+        images_layout = [("003", [.4, .84, .1, .1]),    # Ed
+                         ("015", [.4, .74, .1, .1]),
+                         ("006", [.905, .84, .1, .1]),  # Ld
+                         ("012", [.905, .74, .1, .1]),
+                         ("009", [.4, .38, .1, .1]),    # Lu
+                         ("016", [.905, .38, .1, .1])]  # Sun
+
+        images_dir = dirname(self.path_to_file)+"/image/"
+
+        if not isdir(images_dir):
+            return
+
+        pattern_base = basename(self.path_to_file).replace("L1C", "IMG").replace("ALL_", "")[:48] # noqa
+
+        for img_name in listdir(images_dir):
+            for pattern, location in images_layout:
+                if f"{pattern_base}_{pattern}" in img_name:
+                    im = plt.imread(images_dir + img_name)
+                    newax = fig.add_axes(location)
+                    newax.imshow(im)
+                    newax.axis('off')
 
     def __del__(self):
         self.nc.close()
