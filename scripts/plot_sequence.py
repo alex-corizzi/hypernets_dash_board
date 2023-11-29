@@ -9,7 +9,6 @@ from os import listdir
 from glob import glob
 from datetime import datetime
 from argparse import ArgumentParser
-from re import compile as compile_regex
 
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -21,7 +20,7 @@ class ProductPlotter(object):
     def __init__(self, path_to_file, output_dir, wl_start=0, wl_stop=None):
 
         self.output_dir = output_dir
-        self.path_to_file= path_to_file
+        self.path_to_file = path_to_file
 
         # netCDF4 not designed to do inheritance; composition instead
         self.nc = Dataset(path_to_file, 'r')
@@ -48,8 +47,12 @@ class ProductPlotter(object):
             self.plot_product(self.nc, self._mask, desc, ax)
 
         # Plot the reflectance (averaged) from L2A product
-        data = Dataset(self.path_to_file.replace("L1C_ALL", "L2A_REF"))
-        self.plot_product(data, self._mask, "reflectance", axs[1, 1])
+        try:
+            data = Dataset(self.path_to_file.replace("L1C_ALL", "L2A_REF"))
+            self.plot_product(data, self._mask, "reflectance", axs[1, 1])
+        except FileNotFoundError as e:
+            print(f"Error: {e}")
+            print("One second difference in the processor? (FIXME)")
 
         # Add images of the radiometer for each geometry
         self.add_images(fig)
@@ -81,9 +84,9 @@ class ProductPlotter(object):
 
         images_layout = [("003", [.4, .84, .1, .1]),    # Ed
                          ("015", [.4, .74, .1, .1]),
-                         ("006", [.905, .84, .1, .1]),  # Ld
-                         ("012", [.905, .74, .1, .1]),
-                         ("009", [.4, .38, .1, .1]),    # Lu
+                         ("006", [.4, .38, .1, .1]),  # Ld
+                         ("012", [.4, .28, .1, .1]),
+                         ("009", [.905, .84, .1, .1]),    # Lu
                          ("016", [.905, .38, .1, .1])]  # Sun
 
         images_dir = dirname(self.path_to_file)+"/image/"
@@ -132,6 +135,7 @@ if __name__ == '__main__':
     parser.add_argument("-o", "--output-dir", type=valid_dir,
                         help="Specify the output directory", default="./"),
 
+    # Note: Default values could be 400 ~ 950 nm
     parser.add_argument("-a", "--start-wl", type=int,
                         help="Data slicer (inclusive) starting wavelength"
                         " to plot", default=0)
