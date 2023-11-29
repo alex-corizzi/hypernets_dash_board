@@ -2,22 +2,25 @@
 
 from netCDF4 import Dataset
 
-from os.path import basename, join, isdir, exists, dirname
 from os import listdir
-
+from os.path import basename, join, isdir, exists, dirname
 
 from glob import glob
 from datetime import datetime
 from argparse import ArgumentParser
 
 import matplotlib.pyplot as plt
+# from matplotlib import transforms
 import seaborn as sns
+# plt.rcParams['text.usetex'] = True
+plt.rcParams['mathtext.default'] = 'regular'
 sns.set()
 
 
 class ProductPlotter(object):
 
-    def __init__(self, path_to_file, output_dir, wl_start=0, wl_stop=None):
+    def __init__(self, path_to_file, output_dir, wl_start=0, wl_stop=None,
+                 title=""):
 
         self.output_dir = output_dir
         self.path_to_file = path_to_file
@@ -33,23 +36,30 @@ class ProductPlotter(object):
             cond_stop = True
 
         self._mask = cond_start & cond_stop
+        self.title = title
 
     def generate_plots(self):
 
-        fig, axs = plt.subplots(2, 2, sharex='col', constrained_layout=True)
+        fig, axs = plt.subplots(3, 2, sharex='col', constrained_layout=True)
 
         # Plot the 3 'all' measures from L1C product
-        for n, (ax, desc) in enumerate(zip(axs.reshape(-1),
-                                       ["irradiance", "upwelling_radiance",
-                                        "downwelling_radiance"])):
+        products_to_plot = [("irradiance", "$E_d(λ)$"),
+                            ("upwelling_radiance", "$L_u(λ)$"),
+                            ("downwelling_radiance", "$L_d$(λ)")]
 
-            print(f"== {n} [{desc} --> {ax}]")
-            self.plot_product(self.nc, self._mask, desc, ax)
+        for n, (ax, (desc, title)) in enumerate(zip([(0, 0), (1, 1), (1, 0)],
+                                                products_to_plot)):
+            print(f"== {n} [{desc} ({title})--> {ax}]")
+            self.plot_product(self.nc, self._mask, desc, axs[ax], title)
 
         # Plot the reflectance (averaged) from L2A product
         try:
             data = Dataset(self.path_to_file.replace("L1C_ALL", "L2A_REF"))
-            self.plot_product(data, self._mask, "reflectance", axs[1, 1])
+            self.plot_product(data, self._mask, "reflectance_nosc", axs[2, 0],
+                              "$ρ_{r-nosc}(λ)$")
+            self.plot_product(data, self._mask, "reflectance", axs[2, 1],
+                              "$ρ_r$(λ)")
+
         except FileNotFoundError as e:
             print(f"Error: {e}")
             print("One second difference in the processor? (FIXME)")
@@ -58,13 +68,16 @@ class ProductPlotter(object):
         self.add_images(fig)
 
         # Global settings of the plot
-        axs[1, 0].set_xlabel("Wavelength (nm)")
-        axs[1, 1].set_xlabel("Wavelength (nm)")
-        fig.set_size_inches(18.5, 10.5)
+        axs[0, 1].axis("off")
+        axs[2, 0].set_xlabel("Wavelength (nm)")
+        axs[2, 1].set_xlabel("Wavelength (nm)")
+        fig.set_size_inches(18.5, 15.5)
 
         # Title generated from the timestamp of the measure
         acq_dt = datetime.fromtimestamp(int(self.nc["acquisition_time"][0]))
-        plt.suptitle(f"{acq_dt.strftime('%d-%b %Y - %H:%M:%S')}", fontsize=18)
+        # if self.title is not None:
+        plt.suptitle(f"{self.title} - {acq_dt.strftime('%d-%b %Y - %H:%M:%S')}",  # noqa
+                     fontsize=18, weight='bold')
 
         # Save plot
         output_name = basename(self.path_to_file)[:17] + basename(self.path_to_file)[25:-3] + ".png"  # noqa
@@ -74,20 +87,25 @@ class ProductPlotter(object):
         plt.close(fig)
 
     @staticmethod
-    def plot_product(data, mask, desc, ax):
+    def plot_product(data, mask, desc, ax, title=None):
         ax.plot(data["wavelength"][mask],
                 data[desc][mask], linewidth=0.5)
-        ax.title.set_text(desc)
+
+        if title is None:
+            title = f"{desc}"
+
+        ax.set_title(title, fontsize=18)
         ax.set_ylabel(data[desc].units)
 
     def add_images(self, fig):
+        im_l, im_b,  im_w, im_h = .54, .85, .1, .1
 
-        images_layout = [("003", [.4, .84, .1, .1]),    # Ed
-                         ("015", [.4, .74, .1, .1]),
-                         ("006", [.4, .38, .1, .1]),  # Ld
-                         ("012", [.4, .28, .1, .1]),
-                         ("009", [.905, .84, .1, .1]),    # Lu
-                         ("016", [.905, .38, .1, .1])]  # Sun
+        images_layout = [("003", [im_l, im_b, im_w, im_h]),           # Ed
+                         ("015", [im_l, im_b-1.07*im_h, im_w, im_h]),
+                         ("006", [im_l+1.01*im_w, im_b, im_w, im_h]),  # Ld
+                         ("012", [im_l+1.01*im_w, im_b-1.07*im_h, im_w, im_h]),
+                         ("009", [im_l+2.02*im_w, im_b, im_w, im_h]),  # Lu Sun
+                         ("016", [im_l+2.02*im_w, im_b-1.07*im_h, im_w, im_h])]
 
         images_dir = dirname(self.path_to_file)+"/image/"
 
@@ -100,9 +118,12 @@ class ProductPlotter(object):
             for pattern, location in images_layout:
                 if f"{pattern_base}_{pattern}" in img_name:
                     im = plt.imread(images_dir + img_name)
-                    newax = fig.add_axes(location)
-                    newax.imshow(im)
-                    newax.axis('off')
+                    ax = fig.add_axes(location)
+                    # ax.imshow(im, transform=transforms.Affine2D().
+                    #           rotate_deg(90) + ax.transData)
+                    ax.imshow(im)
+                    ax.set_title(pattern, fontsize=12)
+                    ax.axis('off')
 
     def __del__(self):
         self.nc.close()
@@ -135,6 +156,9 @@ if __name__ == '__main__':
     parser.add_argument("-o", "--output-dir", type=valid_dir,
                         help="Specify the output directory", default="./"),
 
+    parser.add_argument("-t", "--title", type=str,
+                        help="Set the site name.", default="")
+
     # Note: Default values could be 400 ~ 950 nm
     parser.add_argument("-a", "--start-wl", type=int,
                         help="Data slicer (inclusive) starting wavelength"
@@ -147,7 +171,8 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if args.input_file:
-        pp = ProductPlotter(args.input_file, args.output_dir, args.start_wl, args.stop_wl)  # noqa
+        pp = ProductPlotter(args.input_file, args.output_dir, args.start_wl,
+                            args.stop_wl, args.title)
         pp.generate_plots()
 
     elif args.input_dir:
