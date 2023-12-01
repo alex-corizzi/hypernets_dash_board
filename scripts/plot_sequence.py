@@ -198,7 +198,7 @@ if __name__ == '__main__':
                     print(f"Processing {filename}...")
                     pp = ProductPlotter(filename, args.output_dir,
                                         args.start_wl, args.stop_wl)
-                pp.generate_plots(pdf=pdf_file)
+                    pp.generate_plots(pdf=pdf_file)
         else:
             for filename in sorted(glob(join(args.input_dir, "**/*L1C*"),
                                    recursive=True)):
