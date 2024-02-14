@@ -9,3 +9,5 @@ html
 *log
 ./get_data.sh
 ./update_all.cfg
+./process_befr.sh
+./process_mafr.sh
