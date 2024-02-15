@@ -91,9 +91,9 @@ class ProductPlotter(object):
         plt.close(fig)
 
     @staticmethod
-    def plot_product(data, mask, desc, ax, title=None):
+    def plot_product(data, mask, desc, ax, title=None, label=None):
         ax.plot(data["wavelength"][mask],
-                data[desc][mask], linewidth=0.5)
+                data[desc][mask], linewidth=0.5, label=label)
 
         if title is None:
             title = f"{desc}"
