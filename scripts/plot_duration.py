@@ -13,10 +13,10 @@ import matplotlib.patches as mpatches
 
 import seaborn as sns
 
-from scripts.hypernets_dataframe import HypernetsDataFrame
-from scripts.hypernets_dataframe import basic_parser_configuration
+from .scripts.hypernets_dataframe import HypernetsDataFrame
+from .scripts.hypernets_dataframe import basic_parser_configuration
 
-from color_pickup import dict_legend, color_modes
+from .color_pickup import dict_legend, color_modes
 
 sns.set()
 sns.set_style('darkgrid')

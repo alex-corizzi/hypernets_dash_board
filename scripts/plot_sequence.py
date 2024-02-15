@@ -13,7 +13,7 @@ from argparse import ArgumentParser
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 
-from scripts.fetch_satellite_image import FetchSatelliteImage
+from .scripts.fetch_satellite_image import FetchSatelliteImage
 
 import seaborn as sns
 
