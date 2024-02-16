@@ -1,4 +1,5 @@
 
+from datetime import datetime
 from sentinelhub import (
         SHConfig,
         DataCollection,
@@ -17,13 +18,24 @@ class FetchSatelliteImage(SentinelHubRequest):
 
         if bbox == "befr":
             self.bbox = [4.989853, 43.557506, 5.234642, 43.395818]
-        elif bbox == "mafr":
-            self.bbox = [-1.13, 45.59, -0.96, 45.5035]
+        elif bbox == "mafr" and sat_type == "s2":
+            self.bbox = [-1.13, 45.59, -0.95, 45.5035]
+        elif bbox == "mafr" and sat_type == "s3":
+            self.bbox = [-1.16, 45.62, -0.9, 45.46]
         else:
             self.bbox = bbox
 
         self.resolution = resolution
         self.sat_type = sat_type
+
+        print(f"bbox: {self.bbox}, for {sat_type} the {time_interval}")
+
+        bbox, size = self.get_bbox_size()
+
+        if size[0] > 2500 or size[1] > 2500:
+            print(f"Error! {size}")
+            exit(0)
+       
         config = SHConfig("alex-profile")
 
         evalscript = self.get_eval_script()
@@ -33,8 +45,6 @@ class FetchSatelliteImage(SentinelHubRequest):
             input_data = [self.get_input_data_S2(time_interval)]
         else:
             input_data = [self.get_input_data_S3(time_interval)]
-
-        bbox, size = self.get_bbox_size()
 
         super().__init__(evalscript=evalscript,
                          input_data=input_data,
@@ -96,38 +106,77 @@ class FetchSatelliteImage(SentinelHubRequest):
                 """
         else:
             return \
-               """
+                    """
                 //VERSION=3
                 function setup() {
-                    return {
-                        input: [{
-                            bands: ["B02", "B03", "B04"]
-                        }],
-                        output: {
-                            bands: 3
-                        }
-                    };
-                }
-                function evaluatePixel(sample) {
-                    return [2.5 * sample.B04,
-                            2.1 * sample.B03,
-                            1.5 * sample.B02];
-                }
-                """
+                  return {
+                        input: ["B08","B05","B03", "dataMask"],
+                        output: { bands: 4 }
+                          };}
+                  function evaluatePixel(sample) {
+                   return [1.5 * sample.B08, 
+                        1.5 * sample.B05, 
+                        1.5 * sample.B03,
+                        sample.dataMask];
+                   }
+                    """
 
 
 if __name__ == '__main__':
 
-    mafr_bbox = [-1.13, 45.59, -0.96, 45.5035]
 
-    image_request = FetchSatelliteImage(time_interval="2023-07-02",
-                                        bbox=mafr_bbox, sat_type="s3")
+    from argparse import ArgumentParser
+
+    import matplotlib.pyplot as plt
+    from sys import exit
+
+    def valid_bbox(args):
+        if len(args) == 4:
+            return True
+
+    def valid_date(arg):
+        return True
+
+    def valid_date(date_str):
+        try:
+            return datetime.strptime(date_str, "%Y-%m-%d")
+        except ValueError as s:
+            msg = "not a valid date: {0!r}".format(s)
+            raise ArgumentTypeError(msg)
+
+    parser = ArgumentParser()
+
+    parser.add_argument("-s", "--satellite", type=int, default=3,
+                        help="Select sentinel-2 or sentinel-3", choices=[2,3])
+
+    selection_type = parser.add_mutually_exclusive_group(required=True)
+
+    selection_type.add_argument("-i", "--site-id", type=str,
+                                help="Select site ID.")
+
+    selection_type.add_argument("-b", "--bbox", type=float,
+                                help="Define a bbox", nargs='+')
+
+    parser.add_argument("-d", "--date", type=valid_date, required=True,
+                        help="Specify date")
+   
+    args = parser.parse_args()
+
+    if args.bbox and not valid_bbox(args.bbox):
+        raise Exception("Not a valid bbox.")
+    elif args.bbox:
+        bbox = args.bbox
+    elif args.site_id:
+        bbox = args.site_id
+    else:
+        exit(1)
+    
+    image_request = \
+    FetchSatelliteImage(time_interval=args.date.strftime("%Y-%m-%d"),
+                        bbox=bbox, sat_type=f"s{args.satellite}")
 
     image = image_request.get_data()[0]
-
     print(image)
-    import matplotlib.pyplot as plt
-    fig, ax = plt.subplots()
-    ax.imshow(image)
-    ax.axis("off")
-    fig.savefig("./image_sat.png")
+    plt.imshow(image)
+    plt.axis("off")
+    plt.show()
