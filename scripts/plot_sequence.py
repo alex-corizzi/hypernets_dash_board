@@ -21,6 +21,51 @@ plt.rcParams['mathtext.default'] = 'regular'
 sns.set()
 
 
+def valid_dir(path):
+    if isdir(path):
+        return path
+    else:
+        raise NotADirectoryError(path)
+        exit(1)
+
+def valid_file(path):
+    if exists(path):
+        return path
+    else:
+        raise FileNotFoundError(path)
+        exit(1)
+
+
+def basic_parser_configuration(parser):
+    # Note: Default values could be 400 ~ 950 nm
+    parser.add_argument("-a", "--start-wl", type=int,
+                        help="Data slicer (inclusive) starting wavelength"
+                        " to plot", default=0)
+
+    parser.add_argument("-b", "--stop-wl", type=int,
+                        help="Data slicer (inclusive) stopping wavelength"
+                        " to plot", default=None)
+
+    parser.add_argument("-o", "--output-dir", type=valid_dir,
+                        help="Specify the output directory", default="./"),
+
+    parser.add_argument("-t", "--title", type=str,
+                        help="Set the site name.", default="")
+
+    input_type = parser.add_mutually_exclusive_group(required=True)
+
+    input_type.add_argument("-i", "--input-dir", type=valid_dir,
+                            help="Select a folder to perform all plots.")
+
+    input_type.add_argument("-f", "--input-file", type=valid_file,
+                            help="Select a L1C netcdf file.")
+
+    parser.add_argument("-p", "--pdf", type=str,
+                        help="Output a PDF file instead of seperate PNG images.") # noqa
+    return parser
+
+# -----------------------------------------------------------------------------
+
 class ProductPlotter(object):
 
     def __init__(self, path_to_file, output_dir, wl_start=0, wl_stop=None,
@@ -47,6 +92,7 @@ class ProductPlotter(object):
         cond_start = self.nc["wavelength"][:] >= wl_start
         cond_stop = self.nc["wavelength"][:] <= wl_stop
         return cond_start & cond_stop
+
     def generate_plots(self, pdf=None):
 
         fig, axs = plt.subplots(3, 2, sharex='col', constrained_layout=True)
@@ -72,12 +118,11 @@ class ProductPlotter(object):
         axs[0, 1].axis("off")
 
         axs[2, 1].set_xlabel("Wavelength (nm)")
-        fig.set_size_inches(8.3, 5.8)  # format A5
+        # fig.set_size_inches(8.3, 5.8)  # format A5
         fig.set_size_inches(11.7, 8.3)  # format A4
 
         # Title generated from the timestamp of the measure
         acq_dt = datetime.fromtimestamp(int(self.nc["acquisition_time"][0]))
-        # if self.title is not None:
         plt.suptitle(f"{self.title} - {acq_dt.strftime('%d-%b %Y - %H:%M:%S')}",  # noqa
                      fontsize=14, weight='bold')
 
@@ -133,7 +178,7 @@ class ProductPlotter(object):
             for name_qc, (mask, func_qc, _) in rejection.items():
                 print(f"Testing {name_qc}...")
                 if func_qc(rho[mask]) is True:
-                    return name_qc, rho
+                    return name_qc, rho  # return rejection test result and reflectance
 
         if normalize is False:
             return False, rho
@@ -154,7 +199,7 @@ class ProductPlotter(object):
         rho -= rho[self._mask][0]
         rho /= integration
 
-        return False, rho
+        return False, rho  # return rejection test result and reflectance
 
     def add_images(self, fig):
 
@@ -193,47 +238,10 @@ class ProductPlotter(object):
 
 if __name__ == '__main__':
 
-    def valid_dir(path):
-        if isdir(path):
-            return path
-        else:
-            raise NotADirectoryError(path)
-            exit(1)
-
-    def valid_file(path):
-        if exists(path):
-            return path
-        else:
-            raise FileNotFoundError(path)
-            exit(1)
-
     parser = ArgumentParser()
 
-    input_type = parser.add_mutually_exclusive_group(required=True)
+    parser = basic_parser_configuration(parser)
 
-    input_type.add_argument("-i", "--input-dir", type=valid_dir,
-                            help="Select a folder to perform all plots.")
-
-    input_type.add_argument("-f", "--input-file", type=valid_file,
-                            help="Select a L1C netcdf file.")
-
-    parser.add_argument("-o", "--output-dir", type=valid_dir,
-                        help="Specify the output directory", default="./"),
-
-    parser.add_argument("-t", "--title", type=str,
-                        help="Set the site name.", default="")
-
-    parser.add_argument("-p", "--pdf", type=str,
-                        help="Output a PDF file instead of seperate PNG images.") # noqa
-
-    # Note: Default values could be 400 ~ 950 nm
-    parser.add_argument("-a", "--start-wl", type=int,
-                        help="Data slicer (inclusive) starting wavelength"
-                        " to plot", default=0)
-
-    parser.add_argument("-b", "--stop-wl", type=int,
-                        help="Data slicer (inclusive) stopping wavelength"
-                        " to plot", default=None)
 
     args = parser.parse_args()
 
