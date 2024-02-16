@@ -22,6 +22,8 @@ class FetchSatelliteImage(SentinelHubRequest):
             self.bbox = [-1.13, 45.59, -0.95, 45.5035]
         elif bbox == "mafr" and sat_type == "s3":
             self.bbox = [-1.16, 45.62, -0.9, 45.46]
+        elif bbox == "mefr":
+            self.bbox = [4.75, 43.35, 5, 43.2]
         else:
             self.bbox = bbox
 
