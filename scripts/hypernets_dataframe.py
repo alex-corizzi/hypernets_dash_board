@@ -1,4 +1,4 @@
-#!/usr/bin/python3.8
+#!/usr/bin/python
 
 from sys import exit
 from datetime import datetime, date

@@ -1,4 +1,4 @@
-#!/usr/bin/python3.8
+#!/usr/bin/python
 
 
 from datetime import datetime, date
@@ -16,7 +16,7 @@ from numpy import arange
 
 import seaborn as sns
 
-from color_pickup import color_pickup, dict_legend, color_modes
+from color_picker import ColorPicker, color_parser_configuration
 
 from scripts.hypernets_dataframe import HypernetsDataFrame
 from scripts.hypernets_dataframe import basic_parser_configuration
@@ -24,16 +24,7 @@ from scripts.hypernets_dataframe import basic_parser_configuration
 
 parser = ArgumentParser()
 parser = basic_parser_configuration(parser)
-
-
-parser.add_argument("-c", "--color", type=str, help="Choose the color picker.",
-                    choices=color_modes.keys(), default="water")
-
-
-parser.add_argument("-p", "--palette", type=str,
-                    help="Choose the color palette.",
-                    choices=["deep", "muted", "pastel", "bright", "dark",
-                             "colorblind"], default="deep")
+parser = color_parser_configuration(parser)
 
 parser.add_argument("-m", "--marker", type=str,
                     help="Draw start / end marker on segment",
@@ -42,8 +33,8 @@ parser.add_argument("-m", "--marker", type=str,
 
 args = parser.parse_args()
 
-# Make fancy plots -----------------------------------------------------------
 
+# Make fancy plots -----------------------------------------------------------
 sns.set()
 sns.set_style('darkgrid')
 
@@ -54,6 +45,8 @@ if args.after is None and args.before is None:
 
 
 df = HypernetsDataFrame(args.filename, after=args.after, before=args.before)
+
+color_picker = ColorPicker(args.color, args.palette)
 
 # ----------------------------------------------------------------------------
 # Plots ----------------------------------------------------------------------
@@ -75,7 +68,7 @@ for date_index in df['date'].unique():
 
         times = [datetime.combine(date.today(), t) for t in [t1, t2]]
 
-        color = color_pickup(nb_spe, nb_img, args.color)
+        color = color_picker.pickup(nb_spe, nb_img)
 
         # Quick fix : if duration is less eq than ~ 33s,
         # the segment doesn't appear
@@ -130,8 +123,8 @@ yticks = ax1.yaxis.get_major_ticks()
 yticks[0].label1.set_visible(False)
 yticks[1].label1.set_visible(False)
 
-handles = [mpatches.Patch(color=line, label=dict_legend[line])
-           for line in dict_legend]
+handles = [mpatches.Patch(color=line, label=color_picker.dict_legend[line])
+           for line in color_picker.dict_legend]
 
 ax3.legend(handles=handles, loc='upper left')
 
