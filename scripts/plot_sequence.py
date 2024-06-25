@@ -13,7 +13,7 @@ from argparse import ArgumentParser
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 
-from .scripts.fetch_satellite_image import FetchSatelliteImage
+from scripts.fetch_satellite_image import FetchSatelliteImage
 
 import seaborn as sns
 
@@ -56,9 +56,6 @@ def basic_parser_configuration(parser):
 
     input_type.add_argument("-i", "--input-dir", type=valid_dir,
                             help="Select a folder to perform all plots.")
-
-    input_type.add_argument("-f", "--input-file", type=valid_file,
-                            help="Select a L1C netcdf file.")
 
     parser.add_argument("-p", "--pdf", type=str,
                         help="Output a PDF file instead of seperate PNG images.") # noqa
@@ -239,18 +236,11 @@ class ProductPlotter(object):
 if __name__ == '__main__':
 
     parser = ArgumentParser()
-
     parser = basic_parser_configuration(parser)
-
 
     args = parser.parse_args()
 
-    if args.input_file:
-        pp = ProductPlotter(args.input_file, args.output_dir, args.start_wl,
-                            args.stop_wl, args.title)
-        pp.generate_plots(pdf=None)
-
-    elif args.input_dir and args.pdf:
+    if args.input_dir and args.pdf:
         with PdfPages(args.pdf) as pdf_file:
             for filename in sorted(glob(join(args.input_dir, "**/*L1C*"), recursive=True)):  # noqa
                 pp = ProductPlotter(filename, args.output_dir, args.start_wl, args.stop_wl)  # noqa
