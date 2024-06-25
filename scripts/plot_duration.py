@@ -4,7 +4,9 @@ from os.path import basename
 from argparse import ArgumentParser
 
 from datetime import datetime
+from dateutil.relativedelta import relativedelta
 
+from pandas import to_datetime
 from pandas.core.series import Series
 
 import matplotlib.pyplot as plt
@@ -26,6 +28,10 @@ parser = basic_parser_configuration(parser)
 parser = color_parser_configuration(parser)
 
 args = parser.parse_args()
+
+if args.after is None and args.before is None:
+    print("Default data selection (one year ago)")
+    args.after = to_datetime(datetime.now() - relativedelta(years=1))
 
 df = HypernetsDataFrame(args.filename, after=args.after, before=args.before)
 
