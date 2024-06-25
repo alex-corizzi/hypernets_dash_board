@@ -11,3 +11,7 @@ html
 ./update_all.cfg
 process_befr.sh
 process_mafr.sh
+TEFR/
+TEFR_duration.png
+TEFR_segments.png
+TEFR_plot.png
