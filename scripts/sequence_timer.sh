@@ -2,27 +2,6 @@
 # set -o nounset
 # set -euo pipefail
 
-# -----------------------------------------------------------
-# Let's define some default values here
-# -----------------------------------------------------------
-debug=1          # only 1 step
-verbose=1        # output everything on stdout (no output file)
-write_stdout=0   # 0: write file (default); 1: write to stdout;
-display_integration_time=0
-# -----------------------------------------------------------
-extract_meteo=1
-extract_serial_bug=1
-extract_too_dark=1
-extract_rain=1
-extract_yocto_rtc=0
-# -----------------------------------------------------------
-year_to_process=2023
-after=0
-before=0
-# after=$(date -d "2023-06-22 01:00" +"%s")
-# before=$(date -d "2023-06-24 00:00" +"%s")
-# -----------------------------------------------------------
-
 
 # -----------------------------------------------------------
 # TODO  Refactor!
